@@ -14,7 +14,7 @@
 #else
 #import <React/RCTUIKit.h>
 #endif // !TARGET_OS_OSX
-
+#import <WKWebViewRTC/WKWebViewRTC-Swift.h>
 #import "objc/runtime.h"
 
 static NSTimer *keyboardTimer;
@@ -275,6 +275,7 @@ static NSDictionary* customCertificatesForHost;
     WKWebViewConfiguration *wkWebViewConfig = [self setUpWkWebViewConfig];
 #if !TARGET_OS_OSX
     _webView = [[WKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
+    WKWebViewRTC *webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
 #else
     _webView = [[RNCWKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
 #endif // !TARGET_OS_OSX
