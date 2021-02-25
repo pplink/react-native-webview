@@ -6,7 +6,7 @@ project './example.xcodeproj'
 target 'example' do
   use_native_modules!
 
-  pod 'react-native-webview', :path => "../.."
+  pod 'react-native-pagecall-webview', :path => "../.."
 
   pod 'FBLazyVector', :path => "../../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../../node_modules/react-native/Libraries/FBReactNativeSpec"
