@@ -1,5 +1,5 @@
 {
-  "name": "react-native-webview",
+  "name": "react-native-pagecall-webview",
   "description": "React Native WebView component for iOS, Android, macOS, and Windows",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -8,7 +8,7 @@
     "email": "sehun@pplink.net"
   },
   "contributors": [
-    "Thibault Malbranche <malbranche.thibault@gmail.com>"
+    "Park Sehun <sehun@pplink.net>"
   ],
   "license": "MIT",
   "version": "11.2.3",
