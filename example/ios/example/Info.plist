@@ -53,5 +53,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  <key>NSCameraUsageDescription</key>
+  <string>Blink uses your camera to make video calls.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Blink uses your microphone to make calls.</string>
 </dict>
 </plist>
