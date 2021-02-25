@@ -3,7 +3,10 @@
   "description": "React Native WebView component for iOS, Android, macOS, and Windows",
   "main": "index.js",
   "typings": "index.d.ts",
-  "author": "Jamon Holmgren <jamon@infinite.red>",
+  "author": {
+    "name": "Park Sehun",
+    "email": "sehun@pplink.net"
+  },
   "contributors": [
     "Thibault Malbranche <malbranche.thibault@gmail.com>"
   ],
