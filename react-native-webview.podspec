@@ -10,9 +10,9 @@ Pod::Spec.new do |s|
 
   s.authors      = package['author']
   s.homepage     = package['homepage']
-  s.platforms    = { :ios => "9.0", :osx => "10.13" }
+  s.platforms    = { :ios => "11.0", :osx => "10.13" }
 
-  s.source       = { :git => "https://github.com/pplink/react-native-webview.git", :tag => "v#{s.version}" }
+  s.source       = { :git => "https://github.com/pplink/react-native-webview.git", :branch => 'pagecall-support', :tag => "v#{s.version}" }
   s.source_files  = "apple/**/*.{h,m}"
   
   # pagecall support
