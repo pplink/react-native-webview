@@ -86,6 +86,7 @@ static NSDictionary* customCertificatesForHost;
 @property (nonatomic, strong) WKUserScript *postMessageScript;
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
+@property (nonatomic, strong) WKWebViewRTC *webViewRTC;
 @end
 
 @implementation RNCWebView
@@ -275,7 +276,9 @@ static NSDictionary* customCertificatesForHost;
     WKWebViewConfiguration *wkWebViewConfig = [self setUpWkWebViewConfig];
 #if !TARGET_OS_OSX
     _webView = [[WKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
-    WKWebViewRTC *webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
+      
+    // WKWebViewRTC init
+    _webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
 #else
     _webView = [[RNCWKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
 #endif // !TARGET_OS_OSX
@@ -331,6 +334,11 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)removeFromSuperview
 {
+    // WebViewRTC close all RTCPeerConnections
+    if (_webViewRTC) {
+        [_webViewRTC dispose];
+    }
+    
     if (_webView) {
         [_webView.configuration.userContentController removeScriptMessageHandlerForName:MessageHandlerName];
         [_webView removeObserver:self forKeyPath:@"estimatedProgress"];
