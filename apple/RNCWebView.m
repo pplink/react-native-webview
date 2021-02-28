@@ -208,6 +208,10 @@ static NSDictionary* customCertificatesForHost;
  */
 - (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures
 {
+  // pagecall
+  NSLog(@"PageCall createWebViewWithConfiguration invoked...");
+  [self createWKWebViewRTC];
+    
   if (!navigationAction.targetFrame.isMainFrame) {
     [webView loadRequest:navigationAction.request];
   }
@@ -281,15 +285,15 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)didMoveToWindow
 {
+    NSLog(@"PageCall didMoveToWindow invoked...");
+    
   if (self.window != nil && _webView == nil) {
     WKWebViewConfiguration *wkWebViewConfig = [self setUpWkWebViewConfig];
 #if !TARGET_OS_OSX
     _webView = [[WKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
       
-    // pagecall WKWebViewRTC init
-    _webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
-    [_webView.configuration.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self] name:PAGECALL_BRIDGE_NAME];
-    // pagecall end
+    // pagecall WKWebViewRTC
+    //[self createWKWebViewRTC];
 #else
     _webView = [[RNCWKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
 #endif // !TARGET_OS_OSX
@@ -345,13 +349,10 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)removeFromSuperview
 {
-    // pagecall WebViewRTC close all RTCPeerConnections
-    if (_webViewRTC) {
-        [_webViewRTC dispose];
-        [_webView.configuration.userContentController removeScriptMessageHandlerForName:PAGECALL_BRIDGE_NAME];
-        [self stopListeningMicrophone];
-    }
-    // pagecall end
+    NSLog(@"PageCall removeFromSuperview invoked...");
+    
+    // pagecall WebViewRTC
+    [self destroyWKWebViewRTC];
     
     if (_webView) {
         [_webView.configuration.userContentController removeScriptMessageHandlerForName:MessageHandlerName];
@@ -568,6 +569,10 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)visitSource
 {
+    // pagecall
+    NSLog(@"PageCall visitSource invoked...");
+    [self createWKWebViewRTC];
+    
     // Check for a static html source first
     NSString *html = [RCTConvert NSString:_source[@"html"]];
     if (html) {
@@ -1187,6 +1192,11 @@ static NSDictionary* customCertificatesForHost;
    * [_webView reload] doesn't reload the webpage. Therefore, we must
    * manually call [_webView loadRequest:request].
    */
+    
+  // pagecall
+  NSLog(@"PageCall reload invoked...");
+  [self createWKWebViewRTC];
+    
   NSURLRequest *request = [self requestForSource:self.source];
 
   if (request.URL && !_webView.URL.absoluteString.length) {
@@ -1302,6 +1312,7 @@ static NSDictionary* customCertificatesForHost;
 }
 
 - (void)resetupScripts:(WKWebViewConfiguration *)wkWebViewConfig {
+  NSLog(@"PageCall resetupScripts invoked...");
   [wkWebViewConfig.userContentController removeAllUserScripts];
   [wkWebViewConfig.userContentController removeScriptMessageHandlerForName:MessageHandlerName];
   [wkWebViewConfig.userContentController removeScriptMessageHandlerForName:PAGECALL_BRIDGE_NAME]; // pagecall
@@ -1393,6 +1404,7 @@ static NSDictionary* customCertificatesForHost;
 
   if(_messagingEnabled){
     if (self.postMessageScript){
+      NSLog(@"PageCall addScriptMessageHandler invoked...");
       [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                                        name:MessageHandlerName];
       // pagecall
@@ -1432,6 +1444,30 @@ static NSDictionary* customCertificatesForHost;
 }
 
 // pagecall
+# pragma mark - pagecall
+- (void)createWKWebViewRTC
+{
+    NSLog(@"PageCall createWKWebViewRTC invoked...");
+    
+    [self destroyWKWebViewRTC];
+    
+    if (_webView) {
+        _webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
+        [_webView.configuration.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self] name:PAGECALL_BRIDGE_NAME];
+    }
+}
+- (void)destroyWKWebViewRTC
+{
+    NSLog(@"PageCall destroyWKWebViewRTC invoked...");
+    if (_webViewRTC) {
+        [_webViewRTC dispose];
+        _webViewRTC = nil;
+    }
+    
+    [_webView.configuration.userContentController removeScriptMessageHandlerForName:PAGECALL_BRIDGE_NAME];
+    [self stopListeningMicrophone];
+}
+
 # pragma mark - ListeningMicrophone
 - (void)startListeningMicrophoneWithInterval:(NSTimeInterval)interval
 {
