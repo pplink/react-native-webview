@@ -11,7 +11,7 @@ export default class NativeWebpage extends Component<Props, State> {
 
   render() {
     return (
-      <View style={{height: 400}}>
+      <View style={{height: 600}}>
         <WebView
           //source={{uri: 'https://infinite.red'}}
           source={{uri: 'https://pplink.net/call_new/mobileTestRoomId0225n'}}

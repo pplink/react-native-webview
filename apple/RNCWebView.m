@@ -17,6 +17,11 @@
 #import <WKWebViewRTC/WKWebViewRTC-Swift.h>
 #import "objc/runtime.h"
 
+// pagecall
+#import "ARAudioRecognizer.h"
+#define PAGECALL_BRIDGE_NAME @"pageCallSDK"
+// pagecall end
+
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const MessageHandlerName = @"ReactNativeWebView";
@@ -64,7 +69,7 @@ static NSDictionary* customCertificatesForHost;
 
 @interface RNCWebView () <WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler,
 #if !TARGET_OS_OSX
-    UIScrollViewDelegate,
+    UIScrollViewDelegate, ARAudioRecognizerDelegate,
 #endif // !TARGET_OS_OSX
     RCTAutoInsetsProtocol>
 
@@ -86,7 +91,11 @@ static NSDictionary* customCertificatesForHost;
 @property (nonatomic, strong) WKUserScript *postMessageScript;
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
+
+// pagecall
 @property (nonatomic, strong) WKWebViewRTC *webViewRTC;
+@property (nonatomic, strong) ARAudioRecognizer *audioRecognizer;
+// pagecall end
 @end
 
 @implementation RNCWebView
@@ -277,8 +286,10 @@ static NSDictionary* customCertificatesForHost;
 #if !TARGET_OS_OSX
     _webView = [[WKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
       
-    // WKWebViewRTC init
+    // pagecall WKWebViewRTC init
     _webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
+    [_webView.configuration.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self] name:PAGECALL_BRIDGE_NAME];
+    // pagecall end
 #else
     _webView = [[RNCWKWebView alloc] initWithFrame:self.bounds configuration: wkWebViewConfig];
 #endif // !TARGET_OS_OSX
@@ -334,10 +345,13 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)removeFromSuperview
 {
-    // WebViewRTC close all RTCPeerConnections
+    // pagecall WebViewRTC close all RTCPeerConnections
     if (_webViewRTC) {
         [_webViewRTC dispose];
+        [_webView.configuration.userContentController removeScriptMessageHandlerForName:PAGECALL_BRIDGE_NAME];
+        [self stopListeningMicrophone];
     }
+    // pagecall end
     
     if (_webView) {
         [_webView.configuration.userContentController removeScriptMessageHandlerForName:MessageHandlerName];
@@ -499,7 +513,18 @@ static NSDictionary* customCertificatesForHost;
       [event addEntriesFromDictionary: @{@"data": message.body}];
       _onMessage(event);
     }
+  } // pagecall
+  else if ([message.name isEqualToString:PAGECALL_BRIDGE_NAME]) {
+      if ([message.body[@"command"] isEqual:@"startListeningMicrophone"]) {
+          if ([message.body[@"interval"] isKindOfClass:[NSNumber class]]) {
+              [self startListeningMicrophoneWithInterval:[message.body[@"interval"] doubleValue]];
+          }
+      } else if ([message.body[@"command"] isEqual:@"stopListeningMicrophone"]) {
+          [self stopListeningMicrophone];
+      }
   }
+  // pagecall end
+    
 }
 
 - (void)setSource:(NSDictionary *)source
@@ -1279,6 +1304,7 @@ static NSDictionary* customCertificatesForHost;
 - (void)resetupScripts:(WKWebViewConfiguration *)wkWebViewConfig {
   [wkWebViewConfig.userContentController removeAllUserScripts];
   [wkWebViewConfig.userContentController removeScriptMessageHandlerForName:MessageHandlerName];
+  [wkWebViewConfig.userContentController removeScriptMessageHandlerForName:PAGECALL_BRIDGE_NAME]; // pagecall
 
   NSString *html5HistoryAPIShimSource = [NSString stringWithFormat:
     @"(function(history) {\n"
@@ -1369,6 +1395,10 @@ static NSDictionary* customCertificatesForHost;
     if (self.postMessageScript){
       [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                                        name:MessageHandlerName];
+      // pagecall
+      [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
+                                                                         name:PAGECALL_BRIDGE_NAME];
+      // pagecall end
       [wkWebViewConfig.userContentController addUserScript:self.postMessageScript];
     }
     if (self.atEndScript) {
@@ -1400,6 +1430,42 @@ static NSDictionary* customCertificatesForHost;
   }
   return request;
 }
+
+// pagecall
+# pragma mark - ListeningMicrophone
+- (void)startListeningMicrophoneWithInterval:(NSTimeInterval)interval
+{
+    NSLog(@"PageCall startListeningMicrophoneWithInterval:%f invoked...", interval);
+    
+    [self stopListeningMicrophone];
+    
+    self.audioRecognizer = [[ARAudioRecognizer alloc] initWithInterval:interval];
+    self.audioRecognizer.delegate = self;
+}
+
+- (void)stopListeningMicrophone
+{
+    NSLog(@"PageCall stopListeningMicrophone invoked...");
+    
+    if (self.audioRecognizer) {
+        [self.audioRecognizer stopRecord];
+        self.audioRecognizer.delegate = nil;
+        self.audioRecognizer = nil;
+    }
+}
+
+# pragma mark - ARAudioRecognizerDelegate
+- (void)audioRecognized:(ARAudioRecognizer *)recognizer
+{
+    NSLog(@"PageCall audioRecognized invoked...");
+}
+
+- (void)audioLevelUpdated:(ARAudioRecognizer *)recognizer averagePower:(float)averagePower peakPower:(float)peakPower
+{
+    NSString* jsString = [NSString stringWithFormat:@"window.cordovaBridge.onMicrophoneVolumeChange(\"%f\");", peakPower];
+    [self evaluateJS:jsString thenCall:nil];
+}
+// pagecall end
 
 @end
 

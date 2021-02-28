@@ -11,7 +11,7 @@
     "Park Sehun <sehun@pplink.net>"
   ],
   "license": "MIT",
-  "version": "11.2.5",
+  "version": "11.2.7",
   "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
