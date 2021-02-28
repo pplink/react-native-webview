@@ -215,6 +215,7 @@ SWIFT_CLASS("_TtC12WKWebViewRTC12WKWebViewRTC")
 @interface WKWebViewRTC : NSObject
 - (nonnull instancetype)initWithWkwebview:(WKWebView * _Nullable)wkwebview contentController:(WKUserContentController * _Nullable)contentController OBJC_DESIGNATED_INITIALIZER;
 - (void)dispose;
+- (void)onReset;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 + (nonnull instancetype)new SWIFT_DEPRECATED_MSG("-init is unavailable");
 @end
