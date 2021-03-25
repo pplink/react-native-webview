@@ -1447,6 +1447,7 @@ static NSDictionary* customCertificatesForHost;
 - (void)createWKWebViewRTC
 {
     NSLog(@"PageCall createWKWebViewRTC invoked...");
+    
     if (_webView) {
         _webViewRTC = [[WKWebViewRTC alloc] initWithWkwebview:_webView contentController:_webView.configuration.userContentController];
     }
@@ -1454,6 +1455,7 @@ static NSDictionary* customCertificatesForHost;
 - (void)destroyWKWebViewRTC
 {
     NSLog(@"PageCall destroyWKWebViewRTC invoked...");
+    
     if (_webViewRTC) {
         [_webViewRTC dispose];
         _webViewRTC = nil;
@@ -1464,6 +1466,8 @@ static NSDictionary* customCertificatesForHost;
 
 - (void)resetWKWebViewRTC
 {
+    NSLog(@"PageCall resetWKWebViewRTC invoked...");
+    
     if (_webViewRTC) {
         [_webViewRTC onReset];
     }
